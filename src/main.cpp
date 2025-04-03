@@ -1,5 +1,6 @@
 #include "deribit_client.hpp"
 #include "websocket_server.hpp"
+#include "order_manager.hpp"
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -7,6 +8,8 @@
 #include <cmath>
 #include <string>
 #include <limits>
+#include <iomanip>
+#include <nlohmann/json.hpp>
 
 void clearInputBuffer()
 {
@@ -23,11 +26,42 @@ void displayMainMenu()
     std::cout << "4. Get Orderbook" << std::endl;
     std::cout << "5. View Current Positions" << std::endl;
     std::cout << "6. Real-time Market Data" << std::endl;
+    std::cout << "7. View Active Orders" << std::endl;
     std::cout << "0. Exit" << std::endl;
     std::cout << "Enter your choice: ";
 }
 
-void placeOrder(std::shared_ptr<goquant::DeribitClient> client)
+void displayActiveOrders(std::shared_ptr<goquant::OrderManager> order_manager)
+{
+    std::cout << "\n=== Active Limit Orders ===\n";
+    std::cout << "----------------------------------------\n";
+
+    const auto &active_orders = order_manager->getActiveOrders();
+    if (active_orders.empty())
+    {
+        std::cout << "No active limit orders found.\n";
+        return;
+    }
+
+    std::cout << std::left << std::setw(20) << "Order ID"
+              << std::setw(15) << "Side"
+              << std::setw(15) << "Amount"
+              << std::setw(15) << "Price"
+              << "\n";
+    std::cout << "----------------------------------------\n";
+
+    for (const auto &[order_id, order] : active_orders)
+    {
+        std::cout << std::left << std::setw(20) << order_id
+                  << std::setw(15) << order["direction"].get<std::string>()
+                  << std::setw(15) << order["amount"].get<double>()
+                  << std::setw(15) << order["price"].get<double>()
+                  << "\n";
+    }
+    std::cout << "----------------------------------------\n";
+}
+
+void placeOrder(std::shared_ptr<goquant::DeribitClient> client, std::shared_ptr<goquant::OrderManager> order_manager)
 {
     std::string instrument, side, type;
     double price = 0.0, amount;
@@ -88,34 +122,79 @@ void placeOrder(std::shared_ptr<goquant::DeribitClient> client)
 
     try
     {
-        auto order = client->placeOrder(instrument, side, amount, type, price);
-        std::cout << "Order placed successfully!" << std::endl;
-        std::cout << "Order details: " << order.dump(2) << std::endl;
+        bool success = order_manager->placeOrder(instrument, side, amount, type, price);
+        if (success)
+        {
+            if (type == "market")
+            {
+                std::cout << "\n=== Market Order Executed ===\n";
+                std::cout << "Market orders execute immediately and cannot be cancelled.\n";
+            }
+            else if (type == "limit")
+            {
+                std::cout << "\n=== Limit Order Placed ===\n";
+                std::cout << "Order ID: " << order_manager->getLastOrderId() << "\n";
+                std::cout << "IMPORTANT: Save this Order ID to cancel or modify the order later.\n";
+                std::cout << "Use 'View Active Orders' to see all your active limit orders.\n";
+            }
+        }
+        else
+        {
+            std::cout << "Failed to place order." << std::endl;
+        }
     }
     catch (const std::exception &e)
     {
         std::cerr << "Error placing order: " << e.what() << std::endl;
-        std::cout << "Please ensure the amount is a multiple of the contract size." << std::endl;
     }
 }
 
-void cancelOrder(std::shared_ptr<goquant::DeribitClient> client)
+void cancelOrder(std::shared_ptr<goquant::DeribitClient> client, std::shared_ptr<goquant::OrderManager> order_manager)
 {
-    std::string order_id;
+    std::cout << "\n=== Cancel Order ===\n";
 
-    std::cout << "\n=== Cancel Order ===" << std::endl;
-    std::cout << "Enter order ID: ";
+    // First display active orders
+    displayActiveOrders(order_manager);
+
+    const auto &active_orders = order_manager->getActiveOrders();
+    if (active_orders.empty())
+    {
+        std::cout << "No active orders to cancel.\n";
+        return;
+    }
+
+    std::string order_id;
+    std::cout << "\nEnter the complete Order ID to cancel: ";
     std::getline(std::cin, order_id);
+
+    // Validate if order exists
+    if (active_orders.find(order_id) == active_orders.end())
+    {
+        std::cout << "Error: Order ID '" << order_id << "' not found in active orders.\n";
+        std::cout << "Please make sure to enter the complete Order ID as shown above.\n";
+        return;
+    }
 
     try
     {
-        auto result = client->cancelOrder(order_id);
-        std::cout << "Order cancelled successfully!" << std::endl;
-        std::cout << "Cancellation details: " << result.dump(2) << std::endl;
+        bool success = order_manager->cancelOrder(order_id);
+        if (success)
+        {
+            std::cout << "Successfully cancelled order: " << order_id << "\n";
+
+            // Show remaining active orders
+            std::cout << "\nRemaining active orders:\n";
+            displayActiveOrders(order_manager);
+        }
+        else
+        {
+            std::cout << "Failed to cancel order: " << order_id << "\n";
+        }
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Error cancelling order: " << e.what() << std::endl;
+        std::cerr << "Error cancelling order: " << e.what() << "\n";
+        std::cout << "Please verify the Order ID and try again.\n";
     }
 }
 
@@ -156,8 +235,7 @@ void getOrderbook(std::shared_ptr<goquant::DeribitClient> client)
     std::string instrument;
     int depth;
 
-    std::cout << "\n=== Get Orderbook ===" << std::endl;
-    std::cout << "Enter instrument (e.g., BTC-PERPETUAL): ";
+    std::cout << "\nEnter instrument (e.g., BTC-PERPETUAL): ";
     std::getline(std::cin, instrument);
 
     std::cout << "Enter depth (1-100): ";
@@ -167,41 +245,153 @@ void getOrderbook(std::shared_ptr<goquant::DeribitClient> client)
     try
     {
         auto orderbook = client->getOrderbook(instrument, depth);
-        std::cout << "Orderbook received successfully!" << std::endl;
-        std::cout << "Best bid: " << orderbook["result"]["best_bid_price"].get<double>() << std::endl;
-        std::cout << "Best ask: " << orderbook["result"]["best_ask_price"].get<double>() << std::endl;
-        std::cout << "Full orderbook: " << orderbook.dump(2) << std::endl;
+        auto &result = orderbook["result"];
+
+        std::cout << "\n╔═══════════════════════════════════════════════╗\n";
+        std::cout << "║             ORDERBOOK: " << std::left << std::setw(16)
+                  << instrument << "║\n";
+        std::cout << "╠═══════════════════════════════════════════════╣\n";
+
+        // Market Overview
+        std::cout << "║ Last Price:    $" << std::fixed << std::setprecision(2)
+                  << std::setw(25) << result["last_price"].get<double>() << "║\n";
+        std::cout << "║ Best Bid:      $" << std::setw(25)
+                  << result["best_bid_price"].get<double>() << "║\n";
+        std::cout << "║ Best Ask:      $" << std::setw(25)
+                  << result["best_ask_price"].get<double>() << "║\n";
+        std::cout << "╠═══════════════════════════════════════════════╣\n";
+
+        // Sell Orders (Asks)
+        std::cout << "║ SELL ORDERS (ASKS)                           ║\n";
+        std::cout << "╟───────────┬───────────┬───────────────────╢\n";
+        std::cout << "║   Price   │   Size    │     Total USD     ║\n";
+        std::cout << "╟───────────┼───────────┼───────────────────╢\n";
+
+        auto asks = result["asks"];
+        for (size_t i = 0; i < std::min(5UL, asks.size()); ++i)
+        {
+            double price = asks[i][0].get<double>();
+            double size = asks[i][1].get<double>();
+            double total = price * size;
+
+            std::cout << "║ $" << std::setw(8) << price
+                      << " │ " << std::setw(8) << size
+                      << " │ $" << std::setw(13) << total << " ║\n";
+        }
+
+        // Buy Orders (Bids)
+        std::cout << "╟───────────┴───────────┴───────────────────╢\n";
+        std::cout << "║ BUY ORDERS (BIDS)                           ║\n";
+        std::cout << "╟───────────┬───────────┬───────────────────╢\n";
+        std::cout << "║   Price   │   Size    │     Total USD     ║\n";
+        std::cout << "╟───────────┼───────────┼───────────────────╢\n";
+
+        auto bids = result["bids"];
+        for (size_t i = 0; i < std::min(5UL, bids.size()); ++i)
+        {
+            double price = bids[i][0].get<double>();
+            double size = bids[i][1].get<double>();
+            double total = price * size;
+
+            std::cout << "║ $" << std::setw(8) << price
+                      << " │ " << std::setw(8) << size
+                      << " │ $" << std::setw(13) << total << " ║\n";
+        }
+
+        std::cout << "╚═══════════════════════════════════════════════╝\n";
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Error fetching orderbook: " << e.what() << std::endl;
+        std::cout << "\n╔══════════════════════════════════╗";
+        std::cout << "\n║   Error: Cannot Load Orderbook   ║";
+        std::cout << "\n╚══════════════════════════════════╝\n";
     }
 }
 
 void viewPositions(std::shared_ptr<goquant::DeribitClient> client)
 {
-    std::cout << "\n=== Current Positions ===" << std::endl;
     try
     {
         auto positions = client->getPositions();
-        std::cout << "Current positions: " << positions.dump(2) << std::endl;
+
+        if (!positions.contains("result") || positions["result"].empty())
+        {
+            std::cout << "\n╔══════════════════════════════════╗";
+            std::cout << "\n║      No Open Positions          ║";
+            std::cout << "\n╚══════════════════════════════════╝\n";
+            return;
+        }
+
+        std::cout << "\n╔══════════════════════════════════════════════╗";
+        std::cout << "\n║              CURRENT POSITIONS               ║";
+        std::cout << "\n╠══════════════════════════════════════════════╣\n";
+
+        for (const auto &pos : positions["result"])
+        {
+            std::cout << "║ Instrument:     " << std::left << std::setw(28)
+                      << pos["instrument_name"].get<std::string>() << "║\n";
+
+            std::cout << "║ Position Size:  " << std::left << std::setw(28)
+                      << (std::to_string(pos["size"].get<double>()) + " contracts") << "║\n";
+
+            std::cout << "║ Direction:      " << std::left << std::setw(28)
+                      << pos["direction"].get<std::string>() << "║\n";
+
+            std::cout << "║ Average Price:  $" << std::left << std::fixed << std::setprecision(2)
+                      << std::setw(27) << pos["average_price"].get<double>() << "║\n";
+
+            std::cout << "║ Mark Price:     $" << std::left << std::fixed
+                      << std::setw(27) << pos["mark_price"].get<double>() << "║\n";
+
+            double pnl = pos["floating_profit_loss"].get<double>();
+            std::string pnl_str = (pnl >= 0 ? "+" : "") + std::to_string(pnl) + " BTC";
+            std::cout << "║ Unrealized PnL: " << std::left << std::setw(28) << pnl_str << "║\n";
+
+            std::cout << "║ Leverage:       " << std::left << std::setw(28)
+                      << (std::to_string(pos["leverage"].get<int>()) + "x") << "║\n";
+
+            std::cout << "╠══════════════════════════════════════════════╣\n";
+        }
+        std::cout << "╚══════════════════════════════════════════════╝\n";
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Error fetching positions: " << e.what() << std::endl;
+        std::cout << "\n╔══════════════════════════════════╗";
+        std::cout << "\n║      Error: Cannot Load Data     ║";
+        std::cout << "\n╚══════════════════════════════════╝\n";
     }
 }
 
 void onWebSocketMessage(const std::string &message)
 {
-    std::cout << "Received: " << message << std::endl;
+    try
+    {
+        auto json = nlohmann::json::parse(message);
+
+        if (json.contains("params") && json["params"].contains("data"))
+        {
+            auto &data = json["params"]["data"];
+
+            // Clear previous line
+            std::cout << "\033[2K\r"; // Clear line and return cursor to start
+
+            std::cout << "║ Mark: $" << std::fixed << std::setprecision(2)
+                      << std::setw(9) << data["mark_price"].get<double>()
+                      << " │ Bid: $" << std::setw(9) << data["best_bid_price"].get<double>()
+                      << " │ Ask: $" << std::setw(9) << data["best_ask_price"].get<double>()
+                      << " ║\r" << std::flush;
+        }
+    }
+    catch (const std::exception &)
+    {
+        // Silently ignore non-market data messages
+    }
 }
 
 void realTimeMarketData(std::shared_ptr<goquant::DeribitClient> client)
 {
     std::string instrument;
-    std::cout << "\n=== Real-time Market Data ===" << std::endl;
-    std::cout << "Enter instrument to subscribe (e.g., BTC-PERPETUAL): ";
+    std::cout << "\nEnter instrument (e.g., BTC-PERPETUAL): ";
     std::getline(std::cin, instrument);
 
     auto ws = std::make_shared<goquant::WebSocketServer>();
@@ -209,20 +399,28 @@ void realTimeMarketData(std::shared_ptr<goquant::DeribitClient> client)
 
     if (ws->connect("test.deribit.com", "443"))
     {
-        std::cout << "WebSocket connected successfully!" << std::endl;
-        std::cout << "Subscribing to " << instrument << " orderbook..." << std::endl;
-        ws->subscribe("book", instrument);
+        std::cout << "\n╔══════════════════════════════════════════════╗\n";
+        std::cout << "║            REAL-TIME MARKET DATA             ║\n";
+        std::cout << "╠══════════════════════════════════════════════╣\n";
 
-        std::cout << "\nPress Enter to stop streaming..." << std::endl;
+        ws->subscribe("ticker", instrument);
+
+        std::cout << "║ Streaming data for: " << std::left << std::setw(24)
+                  << instrument << "║\n";
+        std::cout << "╠══════════════════════════════════════════════╣\n";
+        std::cout << "║ Press Enter to stop streaming...             ║\n";
+        std::cout << "╚══════════════════════════════════════════════╝\n\n";
+
         std::cin.get();
 
-        std::cout << "Unsubscribing..." << std::endl;
-        ws->unsubscribe("book", instrument);
+        ws->unsubscribe("ticker", instrument);
         ws->disconnect();
     }
     else
     {
-        std::cerr << "Failed to connect to WebSocket server" << std::endl;
+        std::cout << "\n╔══════════════════════════════════╗";
+        std::cout << "\n║   Error: Connection Failed       ║";
+        std::cout << "\n╚══════════════════════════════════╝\n";
     }
 }
 
@@ -243,6 +441,9 @@ int main()
 
     // Create Deribit client instance
     auto client = std::make_shared<goquant::DeribitClient>();
+
+    // Create OrderManager instance
+    auto order_manager = std::make_shared<goquant::OrderManager>(client);
 
     // Authenticate
     std::cout << "\nAuthenticating..." << std::endl;
@@ -268,10 +469,10 @@ int main()
         switch (choice)
         {
         case 1:
-            placeOrder(client);
+            placeOrder(client, order_manager);
             break;
         case 2:
-            cancelOrder(client);
+            cancelOrder(client, order_manager);
             break;
         case 3:
             modifyOrder(client);
@@ -284,6 +485,9 @@ int main()
             break;
         case 6:
             realTimeMarketData(client);
+            break;
+        case 7:
+            displayActiveOrders(order_manager);
             break;
         case 0:
             std::cout << "Exiting..." << std::endl;

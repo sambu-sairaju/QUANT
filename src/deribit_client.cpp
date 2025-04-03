@@ -220,7 +220,9 @@ namespace goquant
         curl_easy_setopt(curl_, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl_, CURLOPT_POSTFIELDS, request_data.c_str());
 
-        std::cout << "Sending request: " << request_data << std::endl;
+        // Remove or comment out these debug prints
+        // std::cout << "Sending request: " << request.dump() << std::endl;
+        // std::cout << "Received response: " << response << std::endl;
 
         CURLcode res = curl_easy_perform(curl_);
         curl_slist_free_all(headers);
@@ -229,8 +231,6 @@ namespace goquant
         {
             throw std::runtime_error("CURL request failed: " + std::string(curl_easy_strerror(res)));
         }
-
-        std::cout << "Received response: " << response_string << std::endl;
 
         try
         {

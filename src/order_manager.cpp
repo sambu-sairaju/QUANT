@@ -16,11 +16,18 @@ namespace goquant
         try
         {
             nlohmann::json response = client_->placeOrder(instrument_name, side, amount, type, price);
-            if (!response.empty())
+            if (!response.empty() && response.contains("result") &&
+                response["result"].contains("order") &&
+                response["result"]["order"].contains("order_id"))
             {
-                static std::mutex mutex_;
-                std::lock_guard<std::mutex> lock(mutex_);
-                active_orders_[response["order_id"].get<std::string>()] = response;
+                last_order_id_ = response["result"]["order"]["order_id"].get<std::string>();
+
+                if (type == "limit")
+                {
+                    static std::mutex mutex_;
+                    std::lock_guard<std::mutex> lock(mutex_);
+                    active_orders_[last_order_id_] = response["result"]["order"];
+                }
                 return true;
             }
             return false;
