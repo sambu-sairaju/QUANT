@@ -1,0 +1,3 @@
+/Users/sambusairaju/Desktop/GoQuant/build/CMakeFiles/GoQuant.dir
+/Users/sambusairaju/Desktop/GoQuant/build/CMakeFiles/edit_cache.dir
+/Users/sambusairaju/Desktop/GoQuant/build/CMakeFiles/rebuild_cache.dir

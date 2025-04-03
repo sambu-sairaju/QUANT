@@ -1,0 +1,8 @@
+# ninja log v6
+9	788	1743702172746009923	CMakeFiles/GoQuant.dir/src/utils.cpp.o	b52356d4ed19fe5f
+8	957	1743702172745233867	CMakeFiles/GoQuant.dir/src/order_manager.cpp.o	35b9cfff168eb82
+8	1096	1743702172744800109	CMakeFiles/GoQuant.dir/src/deribit_client.cpp.o	12faf0c18d40062c
+7	1633	1743702172744461270	CMakeFiles/GoQuant.dir/src/main.cpp.o	132728109cb57d08
+8	1694	1743702172745629457	CMakeFiles/GoQuant.dir/src/market_data.cpp.o	dddbb2929acfd45f
+8	3193	1743702172744970654	CMakeFiles/GoQuant.dir/src/websocket_server.cpp.o	4db778639f7eddae
+3193	3247	1743702175930506517	GoQuant	d6d814676b94be7c
