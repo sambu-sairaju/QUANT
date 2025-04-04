@@ -33,32 +33,29 @@ void displayMainMenu()
 
 void displayActiveOrders(std::shared_ptr<goquant::OrderManager> order_manager)
 {
-    std::cout << "\n=== Active Limit Orders ===\n";
-    std::cout << "----------------------------------------\n";
+    std::cout << "\n=== Active Limit Orders ===" << std::endl;
+    std::cout << "╔════════════════════════════════════════════════════════╗" << std::endl;
+    std::cout << "║ Order ID          Side     Amount        Price         ║" << std::endl;
+    std::cout << "╠════════════════════════════════════════════════════════╣" << std::endl;
 
     const auto &active_orders = order_manager->getActiveOrders();
     if (active_orders.empty())
     {
-        std::cout << "No active limit orders found.\n";
-        return;
+        std::cout << "║              No active limit orders found              ║" << std::endl;
     }
-
-    std::cout << std::left << std::setw(20) << "Order ID"
-              << std::setw(15) << "Side"
-              << std::setw(15) << "Amount"
-              << std::setw(15) << "Price"
-              << "\n";
-    std::cout << "----------------------------------------\n";
-
-    for (const auto &[order_id, order] : active_orders)
+    else
     {
-        std::cout << std::left << std::setw(20) << order_id
-                  << std::setw(15) << order["direction"].get<std::string>()
-                  << std::setw(15) << order["amount"].get<double>()
-                  << std::setw(15) << order["price"].get<double>()
-                  << "\n";
+        for (const auto &[order_id, order] : active_orders)
+        {
+            std::cout << "║ " << std::left << std::setw(16) << order_id
+                      << std::setw(8) << order["direction"].get<std::string>()
+                      << std::right << std::setw(9) << std::fixed << std::setprecision(2)
+                      << order["amount"].get<double>()
+                      << "    $" << std::setw(9) << order["price"].get<double>()
+                      << " ║" << std::endl;
+        }
     }
-    std::cout << "----------------------------------------\n";
+    std::cout << "╚════════════════════════════════════════════════════════╝" << std::endl;
 }
 
 void placeOrder(std::shared_ptr<goquant::DeribitClient> client, std::shared_ptr<goquant::OrderManager> order_manager)
@@ -198,14 +195,31 @@ void cancelOrder(std::shared_ptr<goquant::DeribitClient> client, std::shared_ptr
     }
 }
 
-void modifyOrder(std::shared_ptr<goquant::DeribitClient> client)
+void modifyOrder(std::shared_ptr<goquant::DeribitClient> client, std::shared_ptr<goquant::OrderManager> order_manager)
 {
     std::string order_id, instrument;
     double new_price, new_amount;
 
     std::cout << "\n=== Modify Order ===" << std::endl;
-    std::cout << "Enter order ID: ";
+
+    // Show current active orders
+    displayActiveOrders(order_manager);
+
+    if (order_manager->getActiveOrders().empty())
+    {
+        std::cout << "No active orders to modify." << std::endl;
+        return;
+    }
+
+    std::cout << "\nEnter order ID: ";
     std::getline(std::cin, order_id);
+
+    // Validate order exists
+    if (order_manager->getActiveOrders().find(order_id) == order_manager->getActiveOrders().end())
+    {
+        std::cout << "Error: Order ID not found in active orders." << std::endl;
+        return;
+    }
 
     std::cout << "Enter instrument: ";
     std::getline(std::cin, instrument);
@@ -220,13 +234,33 @@ void modifyOrder(std::shared_ptr<goquant::DeribitClient> client)
 
     try
     {
-        auto result = client->modifyOrder(order_id, instrument, new_price, new_amount);
-        std::cout << "Order modified successfully!" << std::endl;
-        std::cout << "Modified order details: " << result.dump(2) << std::endl;
+        if (order_manager->modifyOrder(order_id, new_amount, new_price))
+        {
+            std::cout << "\n╔═══════════════════════════════════════════╗" << std::endl;
+            std::cout << "║          ORDER MODIFIED SUCCESSFULLY        ║" << std::endl;
+            std::cout << "╠═══════════════════════════════════════════╣" << std::endl;
+            std::cout << "║ Order ID:   " << std::left << std::setw(27) << order_id << "║" << std::endl;
+            std::cout << "║ New Amount: " << std::left << std::setw(27) << new_amount << "║" << std::endl;
+            std::cout << "║ New Price:  $" << std::left << std::setw(26) << new_price << "║" << std::endl;
+            std::cout << "╚═══════════════════════════════════════════╝" << std::endl;
+
+            // Show updated active orders
+            std::cout << "\nUpdated Active Orders:" << std::endl;
+            displayActiveOrders(order_manager);
+        }
+        else
+        {
+            std::cout << "\n╔═══════════════════════════════════════════╗" << std::endl;
+            std::cout << "║             MODIFICATION FAILED             ║" << std::endl;
+            std::cout << "╚═══════════════════════════════════════════╝" << std::endl;
+        }
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Error modifying order: " << e.what() << std::endl;
+        std::cout << "\n╔═══════════════════════════════════════════╗" << std::endl;
+        std::cout << "║              MODIFICATION ERROR             ║" << std::endl;
+        std::cout << "║ " << e.what() << std::endl;
+        std::cout << "╚═══════════════════════════════════════════╝" << std::endl;
     }
 }
 
@@ -475,7 +509,7 @@ int main()
             cancelOrder(client, order_manager);
             break;
         case 3:
-            modifyOrder(client);
+            modifyOrder(client, order_manager);
             break;
         case 4:
             getOrderbook(client);

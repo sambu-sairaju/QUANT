@@ -47,18 +47,21 @@ namespace goquant
         {
             static std::mutex mutex_;
             std::lock_guard<std::mutex> lock(mutex_);
+
+            // Check if order exists
             auto it = active_orders_.find(order_id);
             if (it == active_orders_.end())
             {
-                spdlog::error("Order not found: {}", order_id);
                 return false;
             }
 
             const std::string &instrument_name = it->second["instrument_name"].get<std::string>();
             nlohmann::json response = client_->modifyOrder(order_id, instrument_name, new_price, new_amount);
-            if (!response.empty())
+
+            // Update the active orders map with the new order details
+            if (response.contains("result") && response["result"].contains("order"))
             {
-                active_orders_[order_id] = response;
+                active_orders_[order_id] = response["result"]["order"];
                 return true;
             }
             return false;
