@@ -537,4 +537,24 @@ CMakeFiles/GoQuant.dir/src/deribit_client.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/curl/websockets.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/curl/mprintf.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/iostream \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/sstream
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/sstream \
+  /Users/sambusairaju/Desktop/GoQuant/include/performance_monitor.hpp \
+  /opt/homebrew/include/spdlog/spdlog.h \
+  /opt/homebrew/include/spdlog/common.h \
+  /opt/homebrew/include/spdlog/details/null_mutex.h \
+  /opt/homebrew/include/spdlog/tweakme.h \
+  /opt/homebrew/include/spdlog/fmt/fmt.h \
+  /opt/homebrew/include/fmt/core.h /opt/homebrew/include/fmt/format.h \
+  /opt/homebrew/include/fmt/base.h \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/bit \
+  /opt/homebrew/include/spdlog/details/registry.h \
+  /opt/homebrew/include/spdlog/details/periodic_worker.h \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/condition_variable \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/thread \
+  /opt/homebrew/include/spdlog/details/synchronous_factory.h \
+  /opt/homebrew/include/spdlog/logger.h \
+  /opt/homebrew/include/spdlog/details/backtracer.h \
+  /opt/homebrew/include/spdlog/details/circular_q.h \
+  /opt/homebrew/include/spdlog/details/log_msg_buffer.h \
+  /opt/homebrew/include/spdlog/details/log_msg.h \
+  /opt/homebrew/include/spdlog/version.h

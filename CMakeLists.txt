@@ -47,6 +47,8 @@ set(HEADERS
     include/order_manager.hpp
     include/market_data.hpp
     include/utils.hpp
+    include/performance_monitor.hpp
+    include/performance_analyzer.hpp
 )
 
 # Create executable

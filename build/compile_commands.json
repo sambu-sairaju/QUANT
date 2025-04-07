@@ -1,0 +1,38 @@
+[
+{
+  "directory": "/Users/sambusairaju/Desktop/GoQuant/build",
+  "command": "/usr/bin/c++ -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DFMT_SHARED -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB -I/Users/sambusairaju/Desktop/GoQuant/include -isystem /opt/homebrew/Cellar/boost/1.87.0_1/include -isystem /opt/homebrew/opt/openssl@3/include -isystem /opt/homebrew/include -std=c++20 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/GoQuant.dir/src/main.cpp.o -c /Users/sambusairaju/Desktop/GoQuant/src/main.cpp",
+  "file": "/Users/sambusairaju/Desktop/GoQuant/src/main.cpp",
+  "output": "CMakeFiles/GoQuant.dir/src/main.cpp.o"
+},
+{
+  "directory": "/Users/sambusairaju/Desktop/GoQuant/build",
+  "command": "/usr/bin/c++ -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DFMT_SHARED -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB -I/Users/sambusairaju/Desktop/GoQuant/include -isystem /opt/homebrew/Cellar/boost/1.87.0_1/include -isystem /opt/homebrew/opt/openssl@3/include -isystem /opt/homebrew/include -std=c++20 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/GoQuant.dir/src/deribit_client.cpp.o -c /Users/sambusairaju/Desktop/GoQuant/src/deribit_client.cpp",
+  "file": "/Users/sambusairaju/Desktop/GoQuant/src/deribit_client.cpp",
+  "output": "CMakeFiles/GoQuant.dir/src/deribit_client.cpp.o"
+},
+{
+  "directory": "/Users/sambusairaju/Desktop/GoQuant/build",
+  "command": "/usr/bin/c++ -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DFMT_SHARED -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB -I/Users/sambusairaju/Desktop/GoQuant/include -isystem /opt/homebrew/Cellar/boost/1.87.0_1/include -isystem /opt/homebrew/opt/openssl@3/include -isystem /opt/homebrew/include -std=c++20 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/GoQuant.dir/src/websocket_server.cpp.o -c /Users/sambusairaju/Desktop/GoQuant/src/websocket_server.cpp",
+  "file": "/Users/sambusairaju/Desktop/GoQuant/src/websocket_server.cpp",
+  "output": "CMakeFiles/GoQuant.dir/src/websocket_server.cpp.o"
+},
+{
+  "directory": "/Users/sambusairaju/Desktop/GoQuant/build",
+  "command": "/usr/bin/c++ -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DFMT_SHARED -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB -I/Users/sambusairaju/Desktop/GoQuant/include -isystem /opt/homebrew/Cellar/boost/1.87.0_1/include -isystem /opt/homebrew/opt/openssl@3/include -isystem /opt/homebrew/include -std=c++20 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/GoQuant.dir/src/order_manager.cpp.o -c /Users/sambusairaju/Desktop/GoQuant/src/order_manager.cpp",
+  "file": "/Users/sambusairaju/Desktop/GoQuant/src/order_manager.cpp",
+  "output": "CMakeFiles/GoQuant.dir/src/order_manager.cpp.o"
+},
+{
+  "directory": "/Users/sambusairaju/Desktop/GoQuant/build",
+  "command": "/usr/bin/c++ -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DFMT_SHARED -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB -I/Users/sambusairaju/Desktop/GoQuant/include -isystem /opt/homebrew/Cellar/boost/1.87.0_1/include -isystem /opt/homebrew/opt/openssl@3/include -isystem /opt/homebrew/include -std=c++20 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/GoQuant.dir/src/market_data.cpp.o -c /Users/sambusairaju/Desktop/GoQuant/src/market_data.cpp",
+  "file": "/Users/sambusairaju/Desktop/GoQuant/src/market_data.cpp",
+  "output": "CMakeFiles/GoQuant.dir/src/market_data.cpp.o"
+},
+{
+  "directory": "/Users/sambusairaju/Desktop/GoQuant/build",
+  "command": "/usr/bin/c++ -DBOOST_SYSTEM_DYN_LINK -DBOOST_SYSTEM_NO_LIB -DFMT_SHARED -DSPDLOG_COMPILED_LIB -DSPDLOG_FMT_EXTERNAL -DSPDLOG_SHARED_LIB -I/Users/sambusairaju/Desktop/GoQuant/include -isystem /opt/homebrew/Cellar/boost/1.87.0_1/include -isystem /opt/homebrew/opt/openssl@3/include -isystem /opt/homebrew/include -std=c++20 -arch arm64 -Wall -Wextra -Wpedantic -o CMakeFiles/GoQuant.dir/src/utils.cpp.o -c /Users/sambusairaju/Desktop/GoQuant/src/utils.cpp",
+  "file": "/Users/sambusairaju/Desktop/GoQuant/src/utils.cpp",
+  "output": "CMakeFiles/GoQuant.dir/src/utils.cpp.o"
+}
+]

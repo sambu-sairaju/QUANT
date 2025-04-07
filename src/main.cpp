@@ -10,6 +10,10 @@
 #include <limits>
 #include <iomanip>
 #include <nlohmann/json.hpp>
+#include "performance_monitor.hpp"
+#include "performance_analyzer.hpp"
+#include "thread_pool.hpp"
+#include <spdlog/spdlog.h>
 
 void clearInputBuffer()
 {
@@ -27,6 +31,7 @@ void displayMainMenu()
     std::cout << "5. View Current Positions" << std::endl;
     std::cout << "6. Real-time Market Data" << std::endl;
     std::cout << "7. View Active Orders" << std::endl;
+    std::cout << "8. Run Performance Test" << std::endl;
     std::cout << "0. Exit" << std::endl;
     std::cout << "Enter your choice: ";
 }
@@ -458,8 +463,48 @@ void realTimeMarketData(std::shared_ptr<goquant::DeribitClient> client)
     }
 }
 
+void runPerformanceTest(std::shared_ptr<goquant::DeribitClient> client,
+                       std::shared_ptr<goquant::OrderManager> order_manager)
+{
+    std::cout << "\nRunning Performance Tests..." << std::endl;
+    auto& monitor = goquant::PerformanceMonitor::getInstance();
+
+    // Test order placement latency
+    for (int i = 0; i < 5; i++) {
+        monitor.startOperation("order_placement");
+        try {
+            order_manager->placeOrder("BTC-PERPETUAL", "buy", 10.0, "limit", 50000.0);
+        }
+        catch (const std::exception& e) {
+            spdlog::error("Test order placement failed: {}", e.what());
+        }
+        monitor.endOperation("order_placement");
+        
+        // Add small delay between tests
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    // Test market data latency
+    monitor.startOperation("market_data");
+    try {
+        auto orderbook = client->getOrderbook("BTC-PERPETUAL", 10);
+    }
+    catch (const std::exception& e) {
+        spdlog::error("Market data test failed: {}", e.what());
+    }
+    monitor.endOperation("market_data");
+
+    // Print performance report
+    goquant::PerformanceAnalyzer::printLatencyReport();
+}
+
 int main()
 {
+    auto& monitor = goquant::PerformanceMonitor::getInstance();
+    
+    // Create thread pool
+    goquant::ThreadPool pool(std::thread::hardware_concurrency());
+    
     std::string client_id, client_secret;
 
     std::cout << "=== Deribit Trading System Login ===" << std::endl;
@@ -522,6 +567,9 @@ int main()
             break;
         case 7:
             displayActiveOrders(order_manager);
+            break;
+        case 8:
+            runPerformanceTest(client, order_manager);
             break;
         case 0:
             std::cout << "Exiting..." << std::endl;

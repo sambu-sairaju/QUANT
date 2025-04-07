@@ -7,6 +7,8 @@
 #include <boost/asio/ssl/verify_mode.hpp>
 #include <iostream>
 #include <sstream>
+#include <performance_monitor.hpp>
+#include <spdlog/spdlog.h>
 
 namespace goquant
 {
@@ -179,10 +181,7 @@ namespace goquant
                     std::string message = beast::buffers_to_string(buffer_.data());
                     buffer_.consume(buffer_.size());
 
-                    if (message_callback_)
-                    {
-                        message_callback_(message);
-                    }
+                    onMessage(message);
                 }
                 catch (const std::exception &e)
                 {
@@ -191,6 +190,25 @@ namespace goquant
 
                 doRead();
             });
+    }
+
+    void WebSocketServer::onMessage(const std::string& message)
+    {
+        auto& monitor = PerformanceMonitor::getInstance();
+        monitor.startOperation("websocket_message");
+
+        try {
+            // Process message
+            if (message_callback_) {
+                message_callback_(message);
+            }
+
+            monitor.endOperation("websocket_message");
+        }
+        catch (const std::exception& e) {
+            monitor.endOperation("websocket_message");
+            spdlog::error("Error processing WebSocket message: {}", e.what());
+        }
     }
 
     void WebSocketServer::setMessageCallback(MessageCallback callback)

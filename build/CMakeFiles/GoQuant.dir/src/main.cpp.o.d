@@ -1802,4 +1802,26 @@ CMakeFiles/GoQuant.dir/src/main.cpp.o: \
   /opt/homebrew/Cellar/boost/1.87.0_1/include/boost/asio/ssl/host_name_verification.hpp \
   /opt/homebrew/Cellar/boost/1.87.0_1/include/boost/asio/ssl/impl/host_name_verification.ipp \
   /Users/sambusairaju/Desktop/GoQuant/include/order_manager.hpp \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/iostream
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/iostream \
+  /Users/sambusairaju/Desktop/GoQuant/include/performance_monitor.hpp \
+  /opt/homebrew/include/spdlog/spdlog.h \
+  /opt/homebrew/include/spdlog/common.h \
+  /opt/homebrew/include/spdlog/details/null_mutex.h \
+  /opt/homebrew/include/spdlog/tweakme.h \
+  /opt/homebrew/include/spdlog/fmt/fmt.h \
+  /opt/homebrew/include/fmt/core.h /opt/homebrew/include/fmt/format.h \
+  /opt/homebrew/include/fmt/base.h \
+  /opt/homebrew/include/spdlog/details/registry.h \
+  /opt/homebrew/include/spdlog/details/periodic_worker.h \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/condition_variable \
+  /opt/homebrew/include/spdlog/details/synchronous_factory.h \
+  /opt/homebrew/include/spdlog/logger.h \
+  /opt/homebrew/include/spdlog/details/backtracer.h \
+  /opt/homebrew/include/spdlog/details/circular_q.h \
+  /opt/homebrew/include/spdlog/details/log_msg_buffer.h \
+  /opt/homebrew/include/spdlog/details/log_msg.h \
+  /opt/homebrew/include/spdlog/version.h \
+  /Users/sambusairaju/Desktop/GoQuant/include/performance_analyzer.hpp \
+  /Users/sambusairaju/Desktop/GoQuant/include/thread_pool.hpp \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/queue \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/future

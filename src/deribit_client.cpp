@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#include <performance_monitor.hpp>
+#include <spdlog/spdlog.h>
 
 namespace goquant
 {
@@ -115,6 +117,9 @@ namespace goquant
                                              const std::string &type,
                                              double price)
     {
+        auto& monitor = PerformanceMonitor::getInstance();
+        monitor.startOperation("order_placement");
+        
         ensureAuthenticated();
 
         // For BTC-PERPETUAL, amount must be a multiple of 10
@@ -146,7 +151,10 @@ namespace goquant
         }
 
         std::string method = side == "buy" ? "private/buy" : "private/sell";
-        return makeRequest(method, "", params);
+        nlohmann::json result = makeRequest(method, "", params);
+        
+        monitor.endOperation("order_placement");
+        return result;
     }
 
     nlohmann::json DeribitClient::modifyOrder(const std::string &order_id,

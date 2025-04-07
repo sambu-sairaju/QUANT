@@ -29,6 +29,7 @@ namespace goquant
         void unsubscribe(const std::string &channel, const std::string &instrument);
         void setMessageCallback(MessageCallback callback);
         void setConnectionCallback(ConnectionCallback callback);
+        void onMessage(const std::string& message);
 
     private:
         void doRead();
